@@ -1,6 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcrypt-nodejs');
-const salt = bcrypt.genSaltSync(10);
+//const salt = bcrypt.genSaltSync(10);
+const jwt = require('jsonwebtoken');
 const Usuario = require('../models/usuario');
 
 const app = express();
@@ -9,40 +10,44 @@ app.post('/login', (req, res) => {
 
     let body = req.body;
 
-    Usuario.findOne({ email:  body.email }, (err, usuarioDB) => {
+    Usuario.findOne({ email: body.email }, (err, usuarioDB) => {
 
-        if(err){
+        if (err) {
             return res.status(500).json({
                 ok: false,
                 err
             });
-        }    
-         
-        if(!usuarioDB){
-        return res.status(400).json({
-            ok: false,
-            err:  {
-                message:'(Usuario) o contraseña incorrecta.'
-            } 
-        });
-        } 
-    
-        if(!bcrypt.compareSync(body.password, usuarioDB.password)) {
+        }
+
+        if (!usuarioDB) {
             return res.status(400).json({
                 ok: false,
-                err:  {
-                    message:'Usuario o (Contraseña) incorrecta.'
-                } 
+                err: {
+                    message: '(Usuario) o contraseña incorrecta.'
+                }
             });
         }
 
+        if (!bcrypt.compareSync(body.password, usuarioDB.password)) {
+            return res.status(400).json({
+                ok: false,
+                err: {
+                    message: 'Usuario o (Contraseña) incorrecta.'
+                }
+            });
+        }
+
+        let token = jwt.sign({
+                usuario: usuarioDB,
+            }, process.env.SEED, { expiresIn: process.env.CADUCIDAD_TOKEN })
+            // minutos - segundos- horas-dias  -> expirará en 30 días
         res.json({
             ok: true,
             usuario: usuarioDB,
-            token: '123'
+            token
         });
     })
-   
+
 })
 
 module.exports = app;

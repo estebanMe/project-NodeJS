@@ -16,14 +16,12 @@ app.use(bodyParser.json())
 //Configuración global de rutas
 app.use(require('./routes/index'))
 
-mongoose.connect('mongodb://localhost:27017/cafe', (err, res) =>{
-        if(err) throw err;
-        
-        console.log('Base de datos online')
+mongoose.connect('mongodb://localhost:27017/cafe', {
+    useCreateIndex: true,
+    useNewUrlParser: true
 });
 
 
 app.listen(process.env.PORT, () => {
-  console.log("Escuchando puerto:", process.env.PORT);
+    console.log("Escuchando puerto:", process.env.PORT);
 });
-      
