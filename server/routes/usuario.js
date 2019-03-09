@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt-nodejs');
 const _ = require('underscore');
 const salt = bcrypt.genSaltSync(10);
 const Usuario = require('../models/usuario');
-const { verificaToken } = require('../middlewares/authentication');
+const { verificaToken, verificaAdmin_Role } = require('../middlewares/authentication');
 
 const app = express();
 
@@ -40,7 +40,7 @@ app.get('/usuario', verificaToken, (req, res) => {
 });
 
 
-app.post('/usuario', function(req, res) {
+app.post('/usuario', [verificaToken, verificaAdmin_Role], function(req, res) {
     let body = req.body;
 
     let usuario = new Usuario({
@@ -69,7 +69,7 @@ app.post('/usuario', function(req, res) {
 });
 
 
-app.put('/usuario/:id', function(req, res) {
+app.put('/usuario/:id', [verificaToken, verificaAdmin_Role], function(req, res) {
     let id = req.params.id;
     let body = _.pick(req.body, ['nombre', 'email', 'img', 'role', 'estado']);
 
@@ -91,14 +91,14 @@ app.put('/usuario/:id', function(req, res) {
 });
 
 
-app.delete('/usuario/:id', function(req, res) {
+app.delete('/usuario/:id', [verificaToken, verificaAdmin_Role], function(req, res) {
 
     let id = req.params.id;
     let cambiaEstado = {
         estado: false
     }
 
-    Usuario.findOneAndUpdate(id, cambiaEstado, (err, usuarioBorrado) => {
+    Usuario.findOneAndDelete(id, cambiaEstado, (err, usuarioBorrado) => {
         if (err) {
             return res.status(400).json({
                 ok: false,
